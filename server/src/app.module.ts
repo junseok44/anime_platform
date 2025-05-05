@@ -6,7 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { getTypeOrmConfig } from '../typeorm.config';
+import { getTypeOrmConfig } from './config/typeorm.config';
 
 @Module({
   imports: [
