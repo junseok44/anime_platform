@@ -13,15 +13,17 @@ export class AuthService {
   ) {}
 
   async login(loginDto: LoginDto) {
-    const user = await this.usersService.validateUser(
-      loginDto.email,
-      loginDto.password,
-    );
+    const { email, password } = loginDto;
 
+    const user = await this.usersService.validateUser(email, password);
     if (!user) {
       throw new UnauthorizedException(
         '이메일 또는 비밀번호가 올바르지 않습니다.',
       );
+    }
+
+    if (!user.isEmailVerified) {
+      throw new UnauthorizedException('이메일 인증이 필요합니다.');
     }
 
     const payload = { sub: user.id, email: user.email };

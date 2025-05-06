@@ -9,6 +9,7 @@ services:
       - ./server/.env
     volumes:
       - ./server:/app
+      - /app/node_modules
     depends_on:
       - db
     networks:

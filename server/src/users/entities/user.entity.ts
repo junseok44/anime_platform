@@ -14,9 +14,10 @@ import {
   Matches,
 } from 'class-validator';
 
-@Entity()
+@Entity('user')
 export class User {
   @PrimaryGeneratedColumn('uuid')
+  @Exclude()
   id: string;
 
   @Column({ unique: true })
@@ -43,6 +44,18 @@ export class User {
     },
   )
   password: string;
+
+  @Column({ default: false })
+  isEmailVerified: boolean;
+
+  @Column({ nullable: true })
+  @IsString()
+  @Exclude()
+  emailVerificationCode: string;
+
+  @Column({ nullable: true })
+  @Exclude()
+  emailVerificationCodeExpires: Date;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -1,4 +1,9 @@
-import { Module } from '@nestjs/common';
+import {
+  Module,
+  NestModule,
+  MiddlewareConsumer,
+  RequestMethod,
+} from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -6,7 +11,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { getTypeOrmConfig } from './config/typeorm.config';
+import { getTypeOrmConfig } from './common/config/typeorm.config';
+import { JwtMiddleware } from './auth/middleware/jwt.middleware';
 
 @Module({
   imports: [
@@ -35,4 +41,17 @@ import { getTypeOrmConfig } from './config/typeorm.config';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(JwtMiddleware)
+      .exclude({ path: 'users/register', method: RequestMethod.POST })
+      .exclude({ path: 'users/verify-email', method: RequestMethod.POST })
+      .exclude({
+        path: 'users/resend-verification',
+        method: RequestMethod.POST,
+      })
+      .exclude({ path: 'auth/login', method: RequestMethod.POST })
+      .forRoutes('*');
+  }
+}
