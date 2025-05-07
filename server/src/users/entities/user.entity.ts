@@ -4,6 +4,7 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import {
@@ -13,7 +14,8 @@ import {
   MaxLength,
   Matches,
 } from 'class-validator';
-
+import { AnimeRating } from 'src/anime/entities/anime-rating.entity';
+import { Comment } from 'src/comments/entities/comment.entity';
 @Entity('user')
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -62,4 +64,10 @@ export class User {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => AnimeRating, (rating) => rating.user)
+  animeRatings: AnimeRating[];
+
+  @OneToMany(() => Comment, (comment) => comment.author)
+  comments: Comment[];
 }

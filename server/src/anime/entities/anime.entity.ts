@@ -1,0 +1,62 @@
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  OneToMany,
+  ManyToMany,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { AnimeEpisode } from '../../anime-episode/entities/anime-episode.entity';
+import { User } from 'src/users/entities/user.entity';
+import { Comment } from '../../comments/entities/comment.entity';
+import { Category } from './category.entity';
+import { AnimeRating } from './anime-rating.entity';
+
+export enum AnimeType {
+  TVA = 'tva',
+  MOVIE = 'movie',
+}
+
+@Entity()
+export class Anime {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column()
+  title: string;
+
+  @ManyToMany(() => Category, (category) => category.animes)
+  categories: Category[];
+
+  @Column({
+    type: 'enum',
+    enum: AnimeType,
+    default: AnimeType.TVA,
+  })
+  type: AnimeType;
+
+  @ManyToMany(() => Anime)
+  similarAnimes: Anime[];
+
+  @ManyToMany(() => Anime)
+  relatedAnimes: Anime[];
+
+  @OneToMany(() => AnimeEpisode, (episode) => episode.anime)
+  episodes: AnimeEpisode[];
+
+  @OneToMany(() => Comment, (comment) => comment.anime)
+  comments: Comment[];
+
+  @OneToMany(() => AnimeRating, (rating) => rating.anime)
+  ratings: AnimeRating[];
+
+  @ManyToMany(() => User)
+  wishlistedBy: User[];
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
+}
