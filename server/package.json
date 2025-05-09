@@ -21,7 +21,8 @@
     "typeorm": "ts-node ./node_modules/typeorm/cli.js",
     "migration:generate": "yarn typeorm migration:generate src/common/migrations/Auto_$(date +%Y%m%d%H%M%S) -d src/data-source.ts",
     "migration:run": "yarn typeorm migration:run -d src/data-source.ts",
-    "migration:revert": "yarn typeorm migration:revert -d src/data-source.ts"
+    "migration:revert": "yarn typeorm migration:revert -d src/data-source.ts",
+    "seed": "ts-node src/database/seeds/seed.ts"
   },
   "dependencies": {
     "@nestjs-modules/mailer": "^2.0.2",

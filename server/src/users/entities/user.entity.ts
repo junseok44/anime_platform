@@ -14,8 +14,8 @@ import {
   MaxLength,
   Matches,
 } from 'class-validator';
-import { AnimeRating } from 'src/anime/entities/anime-rating.entity';
-import { Comment } from 'src/comments/entities/comment.entity';
+import { AnimeRating } from '../../anime/entities/anime-rating.entity';
+import { Comment } from '../../comments/entities/comment.entity';
 @Entity('user')
 export class User {
   @PrimaryGeneratedColumn('uuid')

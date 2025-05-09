@@ -4,6 +4,7 @@ import {
   PrimaryGeneratedColumn,
   OneToMany,
   ManyToMany,
+  JoinTable,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -26,6 +27,7 @@ export class Anime {
   title: string;
 
   @ManyToMany(() => Category, (category) => category.animes)
+  @JoinTable()
   categories: Category[];
 
   @Column({
@@ -35,7 +37,8 @@ export class Anime {
   })
   type: AnimeType;
 
-  @ManyToMany(() => Anime)
+  @ManyToMany(() => Anime, (anime) => anime.relatedAnimes)
+  @JoinTable()
   relatedAnimes: Anime[];
 
   @OneToMany(() => AnimeEpisode, (episode) => episode.anime)
