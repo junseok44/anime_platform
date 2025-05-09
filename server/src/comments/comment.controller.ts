@@ -59,10 +59,4 @@ export class CommentController {
   findByEpisodeId(@Param('episodeId') episodeId: string) {
     return this.commentService.findByEpisodeId(episodeId);
   }
-
-  @Post(':id/like')
-  @UseGuards(JwtAuthGuard)
-  toggleLike(@Param('id') id: string, @Request() req) {
-    return this.commentService.toggleLike(id, req.user);
-  }
 }

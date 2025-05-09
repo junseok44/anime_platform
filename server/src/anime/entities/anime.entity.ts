@@ -8,7 +8,6 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { AnimeEpisode } from '../../anime-episode/entities/anime-episode.entity';
-import { User } from 'src/users/entities/user.entity';
 import { Comment } from '../../comments/entities/comment.entity';
 import { Category } from './category.entity';
 import { AnimeRating } from './anime-rating.entity';
@@ -37,9 +36,6 @@ export class Anime {
   type: AnimeType;
 
   @ManyToMany(() => Anime)
-  similarAnimes: Anime[];
-
-  @ManyToMany(() => Anime)
   relatedAnimes: Anime[];
 
   @OneToMany(() => AnimeEpisode, (episode) => episode.anime)
@@ -50,9 +46,6 @@ export class Anime {
 
   @OneToMany(() => AnimeRating, (rating) => rating.anime)
   ratings: AnimeRating[];
-
-  @ManyToMany(() => User)
-  wishlistedBy: User[];
 
   @CreateDateColumn()
   createdAt: Date;

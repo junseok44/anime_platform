@@ -4,18 +4,37 @@ import { Repository } from 'typeorm';
 import { AnimeEpisode } from './entities/anime-episode.entity';
 import { CreateAnimeEpisodeDto } from './dto/create-anime-episode.dto';
 import { UpdateAnimeEpisodeDto } from './dto/update-anime-episode.dto';
+import { Anime } from '../anime/entities/anime.entity';
 
 @Injectable()
 export class AnimeEpisodeService {
   constructor(
     @InjectRepository(AnimeEpisode)
-    private animeEpisodeRepository: Repository<AnimeEpisode>,
+    private readonly animeEpisodeRepository: Repository<AnimeEpisode>,
+    @InjectRepository(Anime)
+    private readonly animeRepository: Repository<Anime>,
   ) {}
 
   async create(
     createAnimeEpisodeDto: CreateAnimeEpisodeDto,
   ): Promise<AnimeEpisode> {
-    const episode = this.animeEpisodeRepository.create(createAnimeEpisodeDto);
+    const anime = await this.animeRepository.findOne({
+      where: { id: createAnimeEpisodeDto.animeId },
+    });
+
+    if (!anime) {
+      throw new NotFoundException(
+        `Anime with ID ${createAnimeEpisodeDto.animeId} not found`,
+      );
+    }
+
+    const episode = new AnimeEpisode();
+    episode.title = createAnimeEpisodeDto.title;
+    episode.synopsis = createAnimeEpisodeDto.synopsis;
+    episode.uploadDate = createAnimeEpisodeDto.uploadDate;
+    episode.runningTime = createAnimeEpisodeDto.runningTime;
+    episode.anime = anime;
+
     return await this.animeEpisodeRepository.save(episode);
   }
 
@@ -43,7 +62,20 @@ export class AnimeEpisodeService {
     updateAnimeEpisodeDto: UpdateAnimeEpisodeDto,
   ): Promise<AnimeEpisode> {
     const episode = await this.findOne(id);
-    Object.assign(episode, updateAnimeEpisodeDto);
+
+    if (updateAnimeEpisodeDto.title) {
+      episode.title = updateAnimeEpisodeDto.title;
+    }
+    if (updateAnimeEpisodeDto.synopsis) {
+      episode.synopsis = updateAnimeEpisodeDto.synopsis;
+    }
+    if (updateAnimeEpisodeDto.uploadDate) {
+      episode.uploadDate = updateAnimeEpisodeDto.uploadDate;
+    }
+    if (updateAnimeEpisodeDto.runningTime) {
+      episode.runningTime = updateAnimeEpisodeDto.runningTime;
+    }
+
     return await this.animeEpisodeRepository.save(episode);
   }
 
@@ -58,6 +90,9 @@ export class AnimeEpisodeService {
     return await this.animeEpisodeRepository.find({
       where: { anime: { id: animeId } },
       relations: ['comments'],
+      order: {
+        uploadDate: 'ASC',
+      },
     });
   }
 

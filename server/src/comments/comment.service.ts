@@ -15,34 +15,34 @@ import { AnimeRating } from '../anime/entities/anime-rating.entity';
 export class CommentService {
   constructor(
     @InjectRepository(Comment)
-    private commentRepository: Repository<Comment>,
+    private readonly commentRepository: Repository<Comment>,
     @InjectRepository(AnimeRating)
-    private animeRatingRepository: Repository<AnimeRating>,
+    private readonly animeRatingRepository: Repository<AnimeRating>,
   ) {}
 
   async create(
     createCommentDto: CreateCommentDto,
     user: User,
   ): Promise<Comment> {
-    const comment = this.commentRepository.create({
-      ...createCommentDto,
-      author: user,
-    });
+    const comment = new Comment();
+    comment.content = createCommentDto.content;
+    comment.type = createCommentDto.type;
+    comment.author = user;
 
-    // 타입에 따라 animeId 또는 episodeId가 필수
-    if (
-      createCommentDto.type === CommentType.REVIEW &&
-      !createCommentDto.animeId
-    ) {
-      throw new BadRequestException('Anime ID is required for reviews');
+    if (createCommentDto.type === CommentType.REVIEW) {
+      if (!createCommentDto.animeId) {
+        throw new BadRequestException('Anime ID is required for reviews');
+      }
+      comment.anime = { id: createCommentDto.animeId } as any;
     }
-    if (
-      createCommentDto.type === CommentType.EPISODE_COMMENT &&
-      !createCommentDto.episodeId
-    ) {
-      throw new BadRequestException(
-        'Episode ID is required for episode comments',
-      );
+
+    if (createCommentDto.type === CommentType.EPISODE_COMMENT) {
+      if (!createCommentDto.episodeId) {
+        throw new BadRequestException(
+          'Episode ID is required for episode comments',
+        );
+      }
+      comment.episode = { id: createCommentDto.episodeId } as any;
     }
 
     return await this.commentRepository.save(comment);
@@ -74,24 +74,24 @@ export class CommentService {
   ): Promise<Comment> {
     const comment = await this.findOne(id);
 
-    // 작성자만 수정 가능
     if (comment.author.id !== user.id) {
       throw new BadRequestException('Only the author can update this comment');
     }
 
-    Object.assign(comment, updateCommentDto);
+    if (updateCommentDto.content) {
+      comment.content = updateCommentDto.content;
+    }
+
     return await this.commentRepository.save(comment);
   }
 
   async remove(id: string, user: User): Promise<void> {
     const comment = await this.findOne(id);
 
-    // 작성자만 삭제 가능
     if (comment.author.id !== user.id) {
       throw new BadRequestException('Only the author can delete this comment');
     }
 
-    // 실제 삭제 대신 isDeleted 플래그 설정
     comment.isDeleted = true;
     await this.commentRepository.save(comment);
   }
@@ -99,42 +99,45 @@ export class CommentService {
   async findByAnimeId(
     animeId: string,
   ): Promise<(Comment & { rating?: number })[]> {
-    const comments = await this.commentRepository.find({
-      where: { anime: { id: animeId }, type: CommentType.REVIEW },
-      relations: ['author'],
-    });
-
-    // 각 댓글 작성자의 평점 정보 조회
-    const commentsWithRatings = await Promise.all(
-      comments.map(async (comment) => {
-        const rating = await this.animeRatingRepository.findOne({
-          where: {
-            anime: { id: animeId },
-            user: { id: comment.author.id },
-          },
-        });
-
-        return {
-          ...comment,
-          rating: rating?.rating,
-        };
+    const [comments, ratings] = await Promise.all([
+      this.commentRepository.find({
+        where: {
+          anime: { id: animeId },
+          type: CommentType.REVIEW,
+          isDeleted: false,
+        },
+        relations: ['author'],
+        order: {
+          createdAt: 'DESC',
+        },
       }),
+      this.animeRatingRepository.find({
+        where: { anime: { id: animeId } },
+        relations: ['user'],
+      }),
+    ]);
+
+    const ratingMap = new Map(
+      ratings.map((rating) => [rating.user.id, rating.rating]),
     );
 
-    return commentsWithRatings;
+    return comments.map((comment) => ({
+      ...comment,
+      rating: ratingMap.get(comment.author.id),
+    }));
   }
 
   async findByEpisodeId(episodeId: string): Promise<Comment[]> {
     return await this.commentRepository.find({
-      where: { episode: { id: episodeId }, type: CommentType.EPISODE_COMMENT },
+      where: {
+        episode: { id: episodeId },
+        type: CommentType.EPISODE_COMMENT,
+        isDeleted: false,
+      },
       relations: ['author'],
+      order: {
+        createdAt: 'DESC',
+      },
     });
-  }
-
-  async toggleLike(id: string): Promise<Comment> {
-    const comment = await this.findOne(id);
-    // TODO: 사용자별 좋아요 상태 관리 로직 추가
-    comment.likes += 1;
-    return await this.commentRepository.save(comment);
   }
 }

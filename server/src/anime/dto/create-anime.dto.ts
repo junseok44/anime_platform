@@ -7,15 +7,10 @@ export class CreateAnimeDto {
 
   @IsArray()
   @IsString({ each: true })
-  categories: string[];
+  categories: string[]; // category names
 
   @IsEnum(AnimeType)
   type: AnimeType;
-
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  similarAnimeIds?: string[];
 
   @IsOptional()
   @IsArray()

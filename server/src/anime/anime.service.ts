@@ -4,16 +4,38 @@ import { Repository } from 'typeorm';
 import { Anime } from './entities/anime.entity';
 import { CreateAnimeDto } from './dto/create-anime.dto';
 import { UpdateAnimeDto } from './dto/update-anime.dto';
+import { Category } from './entities/category.entity';
 
 @Injectable()
 export class AnimeService {
   constructor(
     @InjectRepository(Anime)
-    private animeRepository: Repository<Anime>,
+    private readonly animeRepository: Repository<Anime>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
   ) {}
 
   async create(createAnimeDto: CreateAnimeDto): Promise<Anime> {
-    const anime = this.animeRepository.create(createAnimeDto);
+    const anime = new Anime();
+    anime.title = createAnimeDto.title;
+    anime.type = createAnimeDto.type;
+
+    if (createAnimeDto.categories) {
+      anime.categories = await Promise.all(
+        createAnimeDto.categories.map((categoryName) =>
+          this.categoryRepository.findOne({ where: { name: categoryName } }),
+        ),
+      );
+    }
+
+    if (createAnimeDto.relatedAnimeIds) {
+      anime.relatedAnimes = await Promise.all(
+        createAnimeDto.relatedAnimeIds.map((animeId) =>
+          this.animeRepository.findOne({ where: { id: animeId } }),
+        ),
+      );
+    }
+
     return await this.animeRepository.save(anime);
   }
 
@@ -38,7 +60,33 @@ export class AnimeService {
 
   async update(id: string, updateAnimeDto: UpdateAnimeDto): Promise<Anime> {
     const anime = await this.findOne(id);
-    Object.assign(anime, updateAnimeDto);
+
+    // 기본 필드 업데이트
+    if (updateAnimeDto.title) {
+      anime.title = updateAnimeDto.title;
+    }
+    if (updateAnimeDto.type) {
+      anime.type = updateAnimeDto.type;
+    }
+
+    // 카테고리 업데이트
+    if (updateAnimeDto.categories) {
+      anime.categories = await Promise.all(
+        updateAnimeDto.categories.map((categoryName) =>
+          this.categoryRepository.findOne({ where: { name: categoryName } }),
+        ),
+      );
+    }
+
+    // 관련 애니메이션 업데이트
+    if (updateAnimeDto.relatedAnimeIds) {
+      anime.relatedAnimes = await Promise.all(
+        updateAnimeDto.relatedAnimeIds.map((animeId) =>
+          this.animeRepository.findOne({ where: { id: animeId } }),
+        ),
+      );
+    }
+
     return await this.animeRepository.save(anime);
   }
 
@@ -47,21 +95,6 @@ export class AnimeService {
     if (result.affected === 0) {
       throw new NotFoundException(`Anime with ID ${id} not found`);
     }
-  }
-
-  async addSimilarAnime(
-    animeId: string,
-    similarAnimeId: string,
-  ): Promise<Anime> {
-    const anime = await this.findOne(animeId);
-    const similarAnime = await this.findOne(similarAnimeId);
-
-    if (!anime.similarAnimes) {
-      anime.similarAnimes = [];
-    }
-
-    anime.similarAnimes.push(similarAnime);
-    return await this.animeRepository.save(anime);
   }
 
   async addRelatedAnime(

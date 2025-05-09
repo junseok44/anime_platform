@@ -45,15 +45,6 @@ export class AnimeController {
     return this.animeService.remove(id);
   }
 
-  @Post(':id/similar/:similarId')
-  @UseGuards(JwtAuthGuard)
-  addSimilarAnime(
-    @Param('id') id: string,
-    @Param('similarId') similarId: string,
-  ) {
-    return this.animeService.addSimilarAnime(id, similarId);
-  }
-
   @Post(':id/related/:relatedId')
   @UseGuards(JwtAuthGuard)
   addRelatedAnime(
