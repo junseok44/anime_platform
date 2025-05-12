@@ -13,6 +13,9 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { getTypeOrmConfig } from './common/config/typeorm.config';
 import { JwtMiddleware } from './auth/middleware/jwt.middleware';
+import { AnimeModule } from './anime/anime.module';
+import { AnimeEpisodeModule } from './anime-episode/anime-episode.module';
+import { CommentModule } from './comments/comment.module';
 
 @Module({
   imports: [
@@ -37,6 +40,9 @@ import { JwtMiddleware } from './auth/middleware/jwt.middleware';
     }),
     UsersModule,
     AuthModule,
+    AnimeModule,
+    AnimeEpisodeModule,
+    CommentModule,
   ],
   controllers: [AppController],
   providers: [AppService],
