@@ -11,6 +11,7 @@ import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtMiddleware } from './middleware/jwt.middleware';
+import { ENV_VARIABLE_KEYS } from 'src/common/config/env.validation';
 
 @Module({
   imports: [
@@ -18,8 +19,10 @@ import { JwtMiddleware } from './middleware/jwt.middleware';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get('JWT_SECRET', 'your-secret-key'),
-        signOptions: { expiresIn: '1h' },
+        secret: configService.get(ENV_VARIABLE_KEYS.JWT_SECRET),
+        signOptions: {
+          expiresIn: configService.get(ENV_VARIABLE_KEYS.JWT_EXPIRES_IN),
+        },
       }),
       inject: [ConfigService],
     }),
