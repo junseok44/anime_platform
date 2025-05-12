@@ -41,14 +41,14 @@ export class AnimeService {
 
   async findAll(): Promise<Anime[]> {
     return await this.animeRepository.find({
-      relations: ['episodes', 'similarAnimes', 'relatedAnimes'],
+      relations: ['episodes', 'relatedAnimes'],
     });
   }
 
   async findOne(id: string): Promise<Anime> {
     const anime = await this.animeRepository.findOne({
       where: { id },
-      relations: ['episodes', 'similarAnimes', 'relatedAnimes', 'reviews'],
+      relations: ['episodes', 'relatedAnimes'],
     });
 
     if (!anime) {

@@ -27,7 +27,7 @@ export class UsersController {
   }
 
   @Post('resend-verification')
-  async resendVerificationCode(@Body('email') email: string): Promise<User> {
+  async resendVerificationCode(@Body('email') email: string): Promise<boolean> {
     return this.usersService.resendVerificationCode(email);
   }
 

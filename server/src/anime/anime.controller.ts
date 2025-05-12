@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { AnimeService } from './anime.service';
 import { CreateAnimeDto } from './dto/create-anime.dto';
@@ -43,10 +44,13 @@ export class AnimeController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: '특정 애니메이션 조회' })
-  @ApiResponse({ status: 200, description: '애니메이션 조회 성공' })
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: '애니메이션 상세 조회' })
+  @ApiResponse({ status: 200, description: '애니메이션 상세 조회 성공' })
+  @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
   @ApiResponse({ status: 404, description: '애니메이션을 찾을 수 없음' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.animeService.findOne(id);
   }
 
@@ -58,7 +62,10 @@ export class AnimeController {
   @ApiResponse({ status: 400, description: '잘못된 요청' })
   @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
   @ApiResponse({ status: 404, description: '애니메이션을 찾을 수 없음' })
-  update(@Param('id') id: string, @Body() updateAnimeDto: UpdateAnimeDto) {
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() updateAnimeDto: UpdateAnimeDto,
+  ) {
     return this.animeService.update(id, updateAnimeDto);
   }
 
@@ -69,7 +76,7 @@ export class AnimeController {
   @ApiResponse({ status: 200, description: '애니메이션 삭제 성공' })
   @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
   @ApiResponse({ status: 404, description: '애니메이션을 찾을 수 없음' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.animeService.remove(id);
   }
 
@@ -81,8 +88,8 @@ export class AnimeController {
   @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
   @ApiResponse({ status: 404, description: '애니메이션을 찾을 수 없음' })
   addRelatedAnime(
-    @Param('id') id: string,
-    @Param('relatedId') relatedId: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('relatedId', new ParseUUIDPipe()) relatedId: string,
   ) {
     return this.animeService.addRelatedAnime(id, relatedId);
   }

@@ -16,10 +16,13 @@ import {
 } from 'class-validator';
 import { AnimeRating } from '../../anime/entities/anime-rating.entity';
 import { Comment } from '../../comments/entities/comment.entity';
+import { ApiHideProperty } from '@nestjs/swagger';
+
 @Entity('user')
 export class User {
   @PrimaryGeneratedColumn('uuid')
   @Exclude()
+  @ApiHideProperty()
   id: string;
 
   @Column({ unique: true })
@@ -39,6 +42,7 @@ export class User {
   @Exclude()
   @IsString()
   @MinLength(8)
+  @ApiHideProperty()
   @Matches(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/,
     {
@@ -48,15 +52,18 @@ export class User {
   password: string;
 
   @Column({ default: false })
+  @ApiHideProperty()
   isEmailVerified: boolean;
 
   @Column({ nullable: true })
   @IsString()
   @Exclude()
+  @ApiHideProperty()
   emailVerificationCode: string;
 
   @Column({ nullable: true })
   @Exclude()
+  @ApiHideProperty()
   emailVerificationCodeExpires: Date;
 
   @CreateDateColumn()

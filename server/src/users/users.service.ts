@@ -95,7 +95,7 @@ export class UsersService {
     return this.usersRepository.save(user);
   }
 
-  async resendVerificationCode(email: string): Promise<User> {
+  async resendVerificationCode(email: string): Promise<boolean> {
     const user = await this.findByEmail(email);
     if (!user) {
       throw new NotFoundException('사용자를 찾을 수 없습니다.');
@@ -112,7 +112,7 @@ export class UsersService {
     await this.usersRepository.save(user);
     await this.sendVerificationEmail(user);
 
-    return user;
+    return true;
   }
 
   async findById(id: string): Promise<User | null> {

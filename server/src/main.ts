@@ -23,8 +23,22 @@ async function bootstrap() {
       'access-token', // 이 이름은 @ApiBearerAuth() 데코레이터에서 사용
     )
     .build();
+
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+
+  SwaggerModule.setup('api', app, document, {
+    swaggerOptions: {
+      persistAuthorization: true,
+      docExpansion: 'none',
+      filter: true,
+      showExtensions: true,
+      showCommonExtensions: true,
+      syntaxHighlight: {
+        activate: true,
+        theme: 'monokai',
+      },
+    },
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
