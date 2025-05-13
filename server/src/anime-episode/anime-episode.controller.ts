@@ -7,7 +7,11 @@ import {
   Param,
   Delete,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  ParseUUIDPipe,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AnimeEpisodeService } from './anime-episode.service';
 import { CreateAnimeEpisodeDto } from './dto/create-anime-episode.dto';
 import { UpdateAnimeEpisodeDto } from './dto/update-anime-episode.dto';
@@ -17,22 +21,28 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiConsumes,
 } from '@nestjs/swagger';
 
 @ApiTags('애니메이션 에피소드')
 @Controller('anime-episodes')
+@ApiBearerAuth()
 export class AnimeEpisodeController {
   constructor(private readonly animeEpisodeService: AnimeEpisodeService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('access-token')
   @ApiOperation({ summary: '에피소드 생성' })
   @ApiResponse({ status: 201, description: '에피소드 생성 성공' })
   @ApiResponse({ status: 400, description: '잘못된 요청' })
   @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
-  create(@Body() createAnimeEpisodeDto: CreateAnimeEpisodeDto) {
-    return this.animeEpisodeService.create(createAnimeEpisodeDto);
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(FileInterceptor('video'))
+  create(
+    @Body() createAnimeEpisodeDto: CreateAnimeEpisodeDto,
+    @UploadedFile() video?: Express.Multer.File,
+  ) {
+    return this.animeEpisodeService.create(createAnimeEpisodeDto, video);
   }
 
   @Get()
@@ -43,23 +53,22 @@ export class AnimeEpisodeController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: '특정 에피소드 조회' })
-  @ApiResponse({ status: 200, description: '에피소드 조회 성공' })
+  @ApiOperation({ summary: '에피소드 상세 조회' })
+  @ApiResponse({ status: 200, description: '에피소드 상세 조회 성공' })
   @ApiResponse({ status: 404, description: '에피소드를 찾을 수 없음' })
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.animeEpisodeService.findOne(id);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('access-token')
   @ApiOperation({ summary: '에피소드 수정' })
   @ApiResponse({ status: 200, description: '에피소드 수정 성공' })
   @ApiResponse({ status: 400, description: '잘못된 요청' })
   @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
   @ApiResponse({ status: 404, description: '에피소드를 찾을 수 없음' })
   update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateAnimeEpisodeDto: UpdateAnimeEpisodeDto,
   ) {
     return this.animeEpisodeService.update(id, updateAnimeEpisodeDto);
@@ -67,12 +76,11 @@ export class AnimeEpisodeController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('access-token')
   @ApiOperation({ summary: '에피소드 삭제' })
   @ApiResponse({ status: 200, description: '에피소드 삭제 성공' })
   @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
   @ApiResponse({ status: 404, description: '에피소드를 찾을 수 없음' })
-  remove(@Param('id') id: string) {
+  remove(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.animeEpisodeService.remove(id);
   }
 
@@ -86,13 +94,12 @@ export class AnimeEpisodeController {
 
   @Patch(':id/expiration')
   @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('access-token')
   @ApiOperation({ summary: '에피소드 만료 상태 업데이트' })
   @ApiResponse({ status: 200, description: '만료 상태 업데이트 성공' })
   @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
   @ApiResponse({ status: 404, description: '에피소드를 찾을 수 없음' })
   updateExpirationStatus(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body('isExpired') isExpired: boolean,
   ) {
     return this.animeEpisodeService.updateExpirationStatus(id, isExpired);

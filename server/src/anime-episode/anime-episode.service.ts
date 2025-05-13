@@ -5,6 +5,8 @@ import { AnimeEpisode } from './entities/anime-episode.entity';
 import { CreateAnimeEpisodeDto } from './dto/create-anime-episode.dto';
 import { UpdateAnimeEpisodeDto } from './dto/update-anime-episode.dto';
 import { Anime } from '../anime/entities/anime.entity';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class AnimeEpisodeService {
@@ -17,41 +19,46 @@ export class AnimeEpisodeService {
 
   async create(
     createAnimeEpisodeDto: CreateAnimeEpisodeDto,
+    video?: Express.Multer.File,
   ): Promise<AnimeEpisode> {
     const anime = await this.animeRepository.findOne({
       where: { id: createAnimeEpisodeDto.animeId },
     });
 
     if (!anime) {
-      throw new NotFoundException(
-        `Anime with ID ${createAnimeEpisodeDto.animeId} not found`,
-      );
+      throw new NotFoundException('애니메이션을 찾을 수 없습니다.');
     }
 
-    const episode = new AnimeEpisode();
-    episode.title = createAnimeEpisodeDto.title;
-    episode.synopsis = createAnimeEpisodeDto.synopsis;
-    episode.uploadDate = createAnimeEpisodeDto.uploadDate;
-    episode.runningTime = createAnimeEpisodeDto.runningTime;
-    episode.anime = anime;
+    let videoPath: string | null = null;
 
-    return await this.animeEpisodeRepository.save(episode);
+    if (video) {
+      // DB에는 상대 경로만 저장
+      videoPath = `/videos/${video.filename}`;
+    }
+
+    const episode = this.animeEpisodeRepository.create({
+      ...createAnimeEpisodeDto,
+      anime,
+      videoPath,
+    });
+
+    return this.animeEpisodeRepository.save(episode);
   }
 
   async findAll(): Promise<AnimeEpisode[]> {
     return await this.animeEpisodeRepository.find({
-      relations: ['anime', 'comments'],
+      relations: ['anime'],
     });
   }
 
   async findOne(id: string): Promise<AnimeEpisode> {
     const episode = await this.animeEpisodeRepository.findOne({
       where: { id },
-      relations: ['anime', 'comments'],
+      relations: ['anime'],
     });
 
     if (!episode) {
-      throw new NotFoundException(`Episode with ID ${id} not found`);
+      throw new NotFoundException('에피소드를 찾을 수 없습니다.');
     }
 
     return episode;
@@ -63,27 +70,23 @@ export class AnimeEpisodeService {
   ): Promise<AnimeEpisode> {
     const episode = await this.findOne(id);
 
-    if (updateAnimeEpisodeDto.title) {
-      episode.title = updateAnimeEpisodeDto.title;
-    }
-    if (updateAnimeEpisodeDto.synopsis) {
-      episode.synopsis = updateAnimeEpisodeDto.synopsis;
-    }
-    if (updateAnimeEpisodeDto.uploadDate) {
-      episode.uploadDate = updateAnimeEpisodeDto.uploadDate;
-    }
-    if (updateAnimeEpisodeDto.runningTime) {
-      episode.runningTime = updateAnimeEpisodeDto.runningTime;
-    }
-
-    return await this.animeEpisodeRepository.save(episode);
+    Object.assign(episode, updateAnimeEpisodeDto);
+    return this.animeEpisodeRepository.save(episode);
   }
 
   async remove(id: string): Promise<void> {
-    const result = await this.animeEpisodeRepository.delete(id);
-    if (result.affected === 0) {
-      throw new NotFoundException(`Episode with ID ${id} not found`);
+    const episode = await this.findOne(id);
+
+    // 비디오 파일이 있다면 삭제
+    if (episode.videoPath) {
+      const fileName = path.basename(episode.videoPath);
+      const filePath = path.join(process.cwd(), 'files', 'videos', fileName);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
     }
+
+    await this.animeEpisodeRepository.remove(episode);
   }
 
   async findByAnimeId(animeId: string): Promise<AnimeEpisode[]> {
@@ -102,6 +105,23 @@ export class AnimeEpisodeService {
   ): Promise<AnimeEpisode> {
     const episode = await this.findOne(id);
     episode.isExpired = isExpired;
-    return await this.animeEpisodeRepository.save(episode);
+    return this.animeEpisodeRepository.save(episode);
+  }
+
+  async getVideoStream(id: string) {
+    const episode = await this.findOne(id);
+
+    if (!episode.videoPath) {
+      throw new NotFoundException('비디오 파일을 찾을 수 없습니다.');
+    }
+
+    const fileName = path.basename(episode.videoPath);
+    const filePath = path.join(process.cwd(), 'files', 'videos', fileName);
+
+    if (!fs.existsSync(filePath)) {
+      throw new NotFoundException('비디오 파일을 찾을 수 없습니다.');
+    }
+
+    return fs.createReadStream(filePath);
   }
 }

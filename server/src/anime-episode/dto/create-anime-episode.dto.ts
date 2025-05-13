@@ -4,15 +4,14 @@ import {
   IsDate,
   IsUUID,
   IsOptional,
-  IsBoolean,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
 export class CreateAnimeEpisodeDto {
   @ApiProperty({
-    example: '진격의 거인 1화',
-    description: '에피소드 제목',
+    example: 'asdf-asdf-asdf-asdf',
+    description: '속한 애니메이션의 id',
   })
   @IsUUID()
   animeId: string;
@@ -54,14 +53,6 @@ export class CreateAnimeEpisodeDto {
   episodeNumber: number;
 
   @ApiProperty({
-    example: '주인공이 새로운 세계에 도착하는 이야기',
-    description: '에피소드 설명',
-  })
-  @IsString()
-  @IsOptional()
-  description?: string;
-
-  @ApiProperty({
     example: 24,
     description: '에피소드 길이(분)',
   })
@@ -78,18 +69,10 @@ export class CreateAnimeEpisodeDto {
   thumbnailUrl?: string;
 
   @ApiProperty({
-    example: 'https://example.com/video.mp4',
-    description: '에피소드 비디오 URL',
+    type: 'string',
+    format: 'binary',
+    description: '에피소드 비디오 파일',
   })
-  @IsString()
   @IsOptional()
-  videoUrl?: string;
-
-  @ApiProperty({
-    example: false,
-    description: '에피소드 만료 여부',
-  })
-  @IsBoolean()
-  @IsOptional()
-  isExpired?: boolean;
+  video?: Express.Multer.File;
 }
