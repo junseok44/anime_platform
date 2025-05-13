@@ -11,17 +11,7 @@ async function bootstrap() {
     .setTitle('Laftel Clone API')
     .setDescription('Laftel Clone API 문서')
     .setVersion('1.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        name: 'JWT',
-        description: 'Enter JWT token',
-        in: 'header',
-      },
-      'access-token', // 이 이름은 @ApiBearerAuth() 데코레이터에서 사용
-    )
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

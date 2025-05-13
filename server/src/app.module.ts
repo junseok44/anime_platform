@@ -4,8 +4,6 @@ import {
   MiddlewareConsumer,
   RequestMethod,
 } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
@@ -16,6 +14,8 @@ import { JwtMiddleware } from './auth/middleware/jwt.middleware';
 import { AnimeModule } from './anime/anime.module';
 import { AnimeEpisodeModule } from './anime-episode/anime-episode.module';
 import { CommentModule } from './comments/comment.module';
+import { join } from 'path';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 @Module({
   imports: [
@@ -43,9 +43,13 @@ import { CommentModule } from './comments/comment.module';
     AnimeModule,
     AnimeEpisodeModule,
     CommentModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'files', 'videos'),
+      serveRoot: '/videos',
+    }),
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
