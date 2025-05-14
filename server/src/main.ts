@@ -2,6 +2,8 @@ import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import * as path from 'path';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -29,6 +31,18 @@ async function bootstrap() {
       },
     },
   });
+
+  // 개발 환경에서만 GraphiQL HTML 및 정적 파일 서빙
+  if (['local', 'dev', 'development'].includes(process.env.NODE_ENV)) {
+    const expressApp = app.getHttpAdapter().getInstance();
+    expressApp.use(
+      '/graphiql',
+      express.static(path.join(__dirname, '../graphiql')),
+    );
+    expressApp.get('/graphql', (req, res) => {
+      res.sendFile(path.join(__dirname, '../graphiql/index.html'));
+    });
+  }
 
   app.useGlobalPipes(
     new ValidationPipe({
