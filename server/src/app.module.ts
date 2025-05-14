@@ -16,6 +16,8 @@ import { AnimeEpisodeModule } from './anime-episode/anime-episode.module';
 import { CommentModule } from './comments/comment.module';
 import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 
 @Module({
   imports: [
@@ -46,6 +48,11 @@ import { ServeStaticModule } from '@nestjs/serve-static';
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'files', 'videos'),
       serveRoot: '/videos',
+    }),
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: true,
+      playground: true,
     }),
   ],
   controllers: [],
