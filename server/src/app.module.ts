@@ -1,23 +1,25 @@
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import {
+  MiddlewareConsumer,
   Module,
   NestModule,
-  MiddlewareConsumer,
   RequestMethod,
 } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as Joi from 'joi';
-import { UsersModule } from './users/users.module';
-import { AuthModule } from './auth/auth.module';
-import { getTypeOrmConfig } from './common/config/typeorm.config';
-import { JwtMiddleware } from './auth/middleware/jwt.middleware';
-import { AnimeModule } from './anime/anime.module';
-import { AnimeEpisodeModule } from './anime-episode/anime-episode.module';
-import { CommentModule } from './comments/comment.module';
 import { join } from 'path';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { GraphQLModule } from '@nestjs/graphql';
-import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { AnimeEpisodeModule } from './anime-episode/anime-episode.module';
+import { AnimeModule } from './anime/anime.module';
+import { AnimeService } from './anime/anime.service';
+import { AuthModule } from './auth/auth.module';
+import { JwtMiddleware } from './auth/middleware/jwt.middleware';
+import { CommentModule } from './comments/comment.module';
+import { getTypeOrmConfig } from './common/config/typeorm.config';
+import { createEpisodeLoader } from './common/graphql/loader/anime-episode.loader';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -49,10 +51,18 @@ import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
       rootPath: join(process.cwd(), 'files', 'videos'),
       serveRoot: '/videos',
     }),
-    GraphQLModule.forRoot<ApolloDriverConfig>({
+    GraphQLModule.forRootAsync<ApolloDriverConfig>({
+      imports: [AnimeModule],
+      inject: [AnimeService],
       driver: ApolloDriver,
-      autoSchemaFile: true,
-      playground: true,
+      useFactory: (animeService: AnimeService) => ({
+        autoSchemaFile: true,
+        context: () => ({
+          loaders: {
+            episodeLoader: createEpisodeLoader(animeService),
+          },
+        }),
+      }),
     }),
   ],
   controllers: [],

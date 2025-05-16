@@ -7,9 +7,10 @@ import { CategoryController } from './category.controller';
 import { CategoryService } from './category.service';
 import { Anime } from './entities/anime.entity';
 import { Category } from './entities/category.entity';
+import { AnimeEpisode } from 'src/anime-episode/entities/anime-episode.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Anime, Category])],
+  imports: [TypeOrmModule.forFeature([Anime, Category, AnimeEpisode])],
   controllers: [AnimeController, CategoryController],
   providers: [AnimeService, CategoryService, AnimeResolver],
   exports: [AnimeService],

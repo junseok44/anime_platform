@@ -1,10 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AnimeEpisode } from 'src/anime-episode/entities/anime-episode.entity';
 import { Repository } from 'typeorm';
-import { Anime } from './entities/anime.entity';
 import { CreateAnimeDto } from './dto/create-anime.dto';
 import { UpdateAnimeDto } from './dto/update-anime.dto';
+import { Anime } from './entities/anime.entity';
 import { Category } from './entities/category.entity';
+
+type EpisodeWithAnimeId = AnimeEpisode & { animeId: string };
 
 @Injectable()
 export class AnimeService {
@@ -95,6 +98,34 @@ export class AnimeService {
     if (result.affected === 0) {
       throw new NotFoundException(`Anime with ID ${id} not found`);
     }
+  }
+
+  async findEpisodes(animeId: string): Promise<AnimeEpisode[]> {
+    const anime = await this.animeRepository.findOne({
+      where: { id: animeId },
+      relations: ['episodes'],
+    });
+
+    if (!anime) {
+      throw new NotFoundException(`Anime with ID ${animeId} not found`);
+    }
+
+    return anime.episodes;
+  }
+
+  async findEpisodesByAnimeIds(
+    animeIds: string[],
+  ): Promise<EpisodeWithAnimeId[]> {
+    return this.animeRepository
+      .createQueryBuilder('anime')
+      .leftJoinAndSelect('anime.episodes', 'episodes')
+      .where('anime.id IN (:...ids)', { ids: animeIds })
+      .getMany()
+      .then((animes) => {
+        return animes.flatMap((anime) =>
+          anime.episodes.map((episode) => ({ ...episode, animeId: anime.id })),
+        );
+      });
   }
 
   async addRelatedAnime(
