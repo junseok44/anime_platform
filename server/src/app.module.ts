@@ -20,6 +20,7 @@ import { CommentModule } from './comments/comment.module';
 import { getTypeOrmConfig } from './common/config/typeorm.config';
 import { createEpisodeLoader } from './common/graphql/loader/anime-episode.loader';
 import { UsersModule } from './users/users.module';
+import { RedisModule } from '@nestjs-modules/ioredis';
 
 @Module({
   imports: [
@@ -50,6 +51,14 @@ import { UsersModule } from './users/users.module';
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'files', 'videos'),
       serveRoot: '/videos',
+    }),
+    RedisModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        url: configService.get('REDIS_URL'),
+        type: 'single',
+      }),
     }),
     GraphQLModule.forRootAsync<ApolloDriverConfig>({
       imports: [AnimeModule],

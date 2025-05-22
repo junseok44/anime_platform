@@ -63,4 +63,12 @@ export class AnimeEpisode {
   @Field()
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @Field()
+  @Column({ default: 0 })
+  viewCount: number;
+
+  @Field()
+  @Column({ default: 0 })
+  likeCount: number;
 }
