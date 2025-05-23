@@ -26,7 +26,6 @@
   },
   "dependencies": {
     "@apollo/server": "^4.12.0",
-    "@liaoliaots/nestjs-redis": "^10.0.0",
     "@nestjs-modules/ioredis": "^2.0.2",
     "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/apollo": "^13.1.0",
