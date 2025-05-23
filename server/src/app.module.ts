@@ -21,6 +21,8 @@ import { getTypeOrmConfig } from './common/config/typeorm.config';
 import { createEpisodeLoader } from './common/graphql/loader/anime-episode.loader';
 import { UsersModule } from './users/users.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
+import { APP_GUARD } from '@nestjs/core';
+import { RateLimitGuard } from './common/guards/rate-limit.guard';
 
 @Module({
   imports: [
@@ -75,7 +77,12 @@ import { RedisModule } from '@nestjs-modules/ioredis';
     }),
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: RateLimitGuard,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

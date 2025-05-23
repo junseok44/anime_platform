@@ -10,19 +10,17 @@ import { Category } from './entities/category.entity';
 import { AnimeEpisode } from 'src/anime-episode/entities/anime-episode.entity';
 import { PopularAnimeService } from './popular-anime.service';
 import { PopularAnimeController } from './popular-anime.controller';
-import { RedisModule } from '@nestjs-modules/ioredis';
+import { RateLimitGuard } from 'src/common/guards/rate-limit.guard';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Anime, Category, AnimeEpisode]),
-    RedisModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Anime, Category, AnimeEpisode])],
   controllers: [AnimeController, CategoryController, PopularAnimeController],
   providers: [
     AnimeService,
     CategoryService,
     AnimeResolver,
     PopularAnimeService,
+    RateLimitGuard,
   ],
   exports: [AnimeService, PopularAnimeService],
 })

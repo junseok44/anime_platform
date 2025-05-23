@@ -19,6 +19,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { RateLimit } from 'src/common/guards/rate-limit.guard';
 
 @ApiTags('애니메이션')
 @Controller('anime')
@@ -39,6 +40,7 @@ export class AnimeController {
   @Get()
   @ApiOperation({ summary: '모든 애니메이션 조회' })
   @ApiResponse({ status: 200, description: '애니메이션 목록 조회 성공' })
+  @RateLimit({ limit: 5, window: 5 })
   findAll() {
     return this.animeService.findAll();
   }
