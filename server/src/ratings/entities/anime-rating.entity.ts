@@ -5,13 +5,17 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
+  Unique,
 } from 'typeorm';
-import { Anime } from './anime.entity';
 import { User } from '../../users/entities/user.entity';
 import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { Anime } from 'src/anime/entities/anime.entity';
 
 @ObjectType()
 @Entity()
+@Index(['anime'])
+@Unique(['anime', 'user'])
 export class AnimeRating {
   @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')

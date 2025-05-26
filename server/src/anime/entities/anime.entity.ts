@@ -11,8 +11,8 @@ import {
 import { AnimeEpisode } from '../../anime-episode/entities/anime-episode.entity';
 import { Comment } from '../../comments/entities/comment.entity';
 import { Category } from './category.entity';
-import { AnimeRating } from './anime-rating.entity';
 import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
+import { AnimeRating } from 'src/ratings/entities/anime-rating.entity';
 
 export enum AnimeType {
   TVA = 'tva',
@@ -64,6 +64,10 @@ export class Anime {
   @Field(() => [AnimeRating])
   @OneToMany(() => AnimeRating, (rating) => rating.anime)
   ratings: AnimeRating[];
+
+  @Field(() => Number)
+  @Column('decimal', { precision: 3, scale: 2, default: 0 })
+  averageRating: number;
 
   @Field()
   @CreateDateColumn()

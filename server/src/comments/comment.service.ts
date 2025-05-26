@@ -9,7 +9,7 @@ import { Comment, CommentType } from './entities/comment.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { User } from '../users/entities/user.entity';
 import { UpdateCommentDto } from './dto/update-comment.dto';
-import { AnimeRating } from '../anime/entities/anime-rating.entity';
+import { AnimeRating } from 'src/ratings/entities/anime-rating.entity';
 
 @Injectable()
 export class CommentService {

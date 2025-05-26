@@ -5,7 +5,7 @@ import { CommentController } from './comment.controller';
 import { Comment } from './entities/comment.entity';
 import { AnimeModule } from '../anime/anime.module';
 import { AnimeEpisodeModule } from '../anime-episode/anime-episode.module';
-import { AnimeRating } from 'src/anime/entities/anime-rating.entity';
+import { AnimeRating } from 'src/ratings/entities/anime-rating.entity';
 
 @Module({
   imports: [

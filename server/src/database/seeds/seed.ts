@@ -5,9 +5,9 @@ import { Category } from '../../anime/entities/category.entity';
 import { AnimeEpisode } from '../../anime-episode/entities/anime-episode.entity';
 import { AnimeType } from '../../anime/entities/anime.entity';
 import { Comment, CommentType } from '../../comments/entities/comment.entity';
-import { AnimeRating } from '../../anime/entities/anime-rating.entity';
 import * as bcryptjs from 'bcryptjs';
 import dataSource from '../data-source';
+import { AnimeRating } from 'src/ratings/entities/anime-rating.entity';
 
 async function seed() {
   const connection = await dataSource.initialize();

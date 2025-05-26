@@ -23,6 +23,7 @@ import { UsersModule } from './users/users.module';
 import { RedisModule } from '@nestjs-modules/ioredis';
 import { APP_GUARD } from '@nestjs/core';
 import { RateLimitGuard } from './common/guards/rate-limit.guard';
+import { RatingsModule } from './ratings/ratings.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { RateLimitGuard } from './common/guards/rate-limit.guard';
     AnimeModule,
     AnimeEpisodeModule,
     CommentModule,
+    RatingsModule,
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'files', 'videos'),
       serveRoot: '/videos',
