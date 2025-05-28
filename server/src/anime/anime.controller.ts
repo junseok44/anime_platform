@@ -8,6 +8,7 @@ import {
   Delete,
   UseGuards,
   ParseUUIDPipe,
+  Request,
 } from '@nestjs/common';
 import { AnimeService } from './anime.service';
 import { CreateAnimeDto } from './dto/create-anime.dto';
@@ -94,5 +95,40 @@ export class AnimeController {
     @Param('relatedId', new ParseUUIDPipe()) relatedId: string,
   ) {
     return this.animeService.addRelatedAnime(id, relatedId);
+  }
+
+  @Post(':id/like')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: '애니메이션 좋아요 토글' })
+  @ApiResponse({ status: 200, description: '좋아요 토글 성공' })
+  @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
+  @ApiResponse({ status: 404, description: '애니메이션을 찾을 수 없음' })
+  toggleLike(@Param('id', new ParseUUIDPipe()) id: string, @Request() req) {
+    return this.animeService.toggleLike(id, req.user.id);
+  }
+
+  @Get(':id/like')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: '애니메이션 좋아요 여부 확인' })
+  @ApiResponse({ status: 200, description: '좋아요 여부 확인 성공' })
+  @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
+  @ApiResponse({ status: 404, description: '애니메이션을 찾을 수 없음' })
+  isLiked(@Param('id', new ParseUUIDPipe()) id: string, @Request() req) {
+    return this.animeService.isLiked(id, req.user.id);
+  }
+
+  @Get('liked')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: '좋아요한 애니메이션 목록 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '좋아요한 애니메이션 목록 조회 성공',
+  })
+  @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
+  getLikedAnimes(@Request() req) {
+    return this.animeService.getLikedAnimes(req.user.id);
   }
 }

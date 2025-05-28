@@ -11,9 +11,10 @@ import { AnimeEpisode } from 'src/anime-episode/entities/anime-episode.entity';
 import { PopularAnimeService } from './popular-anime.service';
 import { PopularAnimeController } from './popular-anime.controller';
 import { RateLimitGuard } from 'src/common/guards/rate-limit.guard';
+import { User } from '../users/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Anime, Category, AnimeEpisode])],
+  imports: [TypeOrmModule.forFeature([Anime, Category, AnimeEpisode, User])],
   controllers: [AnimeController, CategoryController, PopularAnimeController],
   providers: [
     AnimeService,
