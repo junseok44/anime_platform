@@ -5,6 +5,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  ManyToMany,
 } from 'typeorm';
 import { Exclude } from 'class-transformer';
 import {
@@ -17,14 +18,19 @@ import {
 import { Comment } from '../../comments/entities/comment.entity';
 import { ApiHideProperty } from '@nestjs/swagger';
 import { AnimeRating } from 'src/ratings/entities/anime-rating.entity';
+import { Anime } from 'src/anime/entities/anime.entity';
+import { ObjectType, Field, ID } from '@nestjs/graphql';
 
+@ObjectType()
 @Entity('user')
 export class User {
+  @Field(() => ID)
   @PrimaryGeneratedColumn('uuid')
   @Exclude()
   @ApiHideProperty()
   id: string;
 
+  @Field()
   @Column({ unique: true })
   @IsString()
   @MinLength(2)
@@ -34,6 +40,7 @@ export class User {
   })
   nickname: string;
 
+  @Field()
   @Column({ unique: true })
   @IsEmail()
   email: string;
@@ -51,6 +58,7 @@ export class User {
   )
   password: string;
 
+  @Field()
   @Column({ default: false })
   @ApiHideProperty()
   isEmailVerified: boolean;
@@ -66,15 +74,23 @@ export class User {
   @ApiHideProperty()
   emailVerificationCodeExpires: Date;
 
+  @Field()
   @CreateDateColumn()
   createdAt: Date;
 
+  @Field()
   @UpdateDateColumn()
   updatedAt: Date;
 
+  @Field(() => [AnimeRating])
   @OneToMany(() => AnimeRating, (rating) => rating.user)
   animeRatings: AnimeRating[];
 
+  @Field(() => [Comment])
   @OneToMany(() => Comment, (comment) => comment.author)
   comments: Comment[];
+
+  @Field(() => [Anime])
+  @ManyToMany(() => Anime, (anime) => anime.likedBy)
+  likedAnimes: Anime[];
 }
