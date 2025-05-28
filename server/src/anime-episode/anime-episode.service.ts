@@ -7,6 +7,7 @@ import { UpdateAnimeEpisodeDto } from './dto/update-anime-episode.dto';
 import { Anime } from '../anime/entities/anime.entity';
 import * as fs from 'fs';
 import * as path from 'path';
+import { RedisPubSubService } from 'src/common/redis/redis-pubsub.service';
 
 @Injectable()
 export class AnimeEpisodeService {
@@ -15,6 +16,7 @@ export class AnimeEpisodeService {
     private readonly animeEpisodeRepository: Repository<AnimeEpisode>,
     @InjectRepository(Anime)
     private readonly animeRepository: Repository<Anime>,
+    private readonly redisPubSubService: RedisPubSubService,
   ) {}
 
   async create(
@@ -23,6 +25,7 @@ export class AnimeEpisodeService {
   ): Promise<AnimeEpisode> {
     const anime = await this.animeRepository.findOne({
       where: { id: createAnimeEpisodeDto.animeId },
+      relations: ['likedBy'],
     });
 
     if (!anime) {
@@ -42,7 +45,20 @@ export class AnimeEpisodeService {
       videoPath,
     });
 
-    return this.animeEpisodeRepository.save(episode);
+    const savedEpisode = await this.animeEpisodeRepository.save(episode);
+
+    // 좋아요한 사용자들에게 새 에피소드 알림 전송
+    for (const user of anime.likedBy) {
+      this.redisPubSubService.publish('new-episode', {
+        userId: user.id,
+        animeId: savedEpisode.anime.id,
+        episodeId: savedEpisode.id,
+        episodeNumber: savedEpisode.episodeNumber,
+        title: savedEpisode.title,
+      });
+    }
+
+    return savedEpisode;
   }
 
   async findAll(): Promise<AnimeEpisode[]> {
