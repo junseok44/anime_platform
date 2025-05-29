@@ -8,6 +8,7 @@ import { Anime } from '../anime/entities/anime.entity';
 import * as fs from 'fs';
 import * as path from 'path';
 import { RedisPubSubService } from 'src/common/redis/redis-pubsub.service';
+import { QueueService } from '../common/queue/queue.service';
 
 @Injectable()
 export class AnimeEpisodeService {
@@ -17,6 +18,7 @@ export class AnimeEpisodeService {
     @InjectRepository(Anime)
     private readonly animeRepository: Repository<Anime>,
     private readonly redisPubSubService: RedisPubSubService,
+    private readonly queueService: QueueService,
   ) {}
 
   async create(
@@ -53,6 +55,18 @@ export class AnimeEpisodeService {
         userId: user.id,
         animeId: savedEpisode.anime.id,
         episodeId: savedEpisode.id,
+        episodeNumber: savedEpisode.episodeNumber,
+        title: savedEpisode.title,
+      });
+    }
+
+    // 큐에 업로드 작업 추가
+    if (video) {
+      await this.queueService.addEpisodeUploadJob({
+        episodeId: savedEpisode.id,
+        videoPath: videoPath,
+        animeId: savedEpisode.anime.id,
+        userId: savedEpisode.anime.likedBy.map((user) => user.id).join(','),
         episodeNumber: savedEpisode.episodeNumber,
         title: savedEpisode.title,
       });

@@ -10,6 +10,7 @@ import { join } from 'path';
 import { v4 } from 'uuid';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { RedisPubSubModule } from 'src/common/redis/redis-pubsub.module';
+import { QueueModule } from 'src/common/queue/queue.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { RedisPubSubModule } from 'src/common/redis/redis-pubsub.module';
     }),
     NotificationsModule,
     RedisPubSubModule,
+    QueueModule,
   ],
   controllers: [AnimeEpisodeController],
   providers: [AnimeEpisodeService],
