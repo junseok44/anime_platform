@@ -75,12 +75,6 @@ export class AnimeEpisodeService {
     return savedEpisode;
   }
 
-  async findAll(): Promise<AnimeEpisode[]> {
-    return await this.animeEpisodeRepository.find({
-      relations: ['anime'],
-    });
-  }
-
   async findOne(id: string): Promise<AnimeEpisode> {
     const episode = await this.animeEpisodeRepository.findOne({
       where: { id },

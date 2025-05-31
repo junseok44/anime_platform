@@ -4,14 +4,16 @@ import { EpisodeUploadProcessor } from './queue.processor';
 import { AnimeProcessingProcessor } from './queue.processor';
 import { RedisPubSubModule } from '../redis/redis-pubsub.module';
 import { QueueService } from './queue.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
-    BullModule.forRoot({
-      redis: {
-        host: 'localhost',
-        port: 6379,
-      },
+    BullModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        redis: configService.get('REDIS_URL'),
+      }),
+      inject: [ConfigService],
     }),
     BullModule.registerQueue(
       {

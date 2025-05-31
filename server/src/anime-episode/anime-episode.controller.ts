@@ -26,7 +26,7 @@ import {
 
 @ApiTags('애니메이션 에피소드')
 @Controller('anime-episodes')
-@ApiBearerAuth()
+@ApiBearerAuth('access-token')
 export class AnimeEpisodeController {
   constructor(private readonly animeEpisodeService: AnimeEpisodeService) {}
 
@@ -45,15 +45,9 @@ export class AnimeEpisodeController {
     return this.animeEpisodeService.create(createAnimeEpisodeDto, video);
   }
 
-  @Get()
-  @ApiOperation({ summary: '모든 에피소드 조회' })
-  @ApiResponse({ status: 200, description: '에피소드 목록 조회 성공' })
-  findAll() {
-    return this.animeEpisodeService.findAll();
-  }
-
   @Get(':id')
   @ApiOperation({ summary: '에피소드 상세 조회' })
+  @UseGuards(JwtAuthGuard)
   @ApiResponse({ status: 200, description: '에피소드 상세 조회 성공' })
   @ApiResponse({ status: 404, description: '에피소드를 찾을 수 없음' })
   findOne(@Param('id', new ParseUUIDPipe()) id: string) {
@@ -88,7 +82,7 @@ export class AnimeEpisodeController {
   @ApiOperation({ summary: '애니메이션별 에피소드 조회' })
   @ApiResponse({ status: 200, description: '에피소드 목록 조회 성공' })
   @ApiResponse({ status: 404, description: '애니메이션을 찾을 수 없음' })
-  findByAnimeId(@Param('animeId') animeId: string) {
+  findByAnimeId(@Param('animeId', new ParseUUIDPipe()) animeId: string) {
     return this.animeEpisodeService.findByAnimeId(animeId);
   }
 
