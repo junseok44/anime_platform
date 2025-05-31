@@ -2,14 +2,15 @@ import { Process, Processor } from '@nestjs/bull';
 import { Logger } from '@nestjs/common';
 import { Job } from 'bull';
 import { RedisPubSubService } from '../redis/redis-pubsub.service';
+import { QUEUE_JOB_KEYS, QUEUE_KEYS } from './queue-keys';
 
-@Processor('episode-upload')
+@Processor(QUEUE_KEYS.EPISODE_UPLOAD)
 export class EpisodeUploadProcessor {
   private readonly logger = new Logger(EpisodeUploadProcessor.name);
 
   constructor(private readonly redisPubSubService: RedisPubSubService) {}
 
-  @Process('process-upload')
+  @Process(QUEUE_JOB_KEYS.PROCESS_UPLOAD)
   async handleUpload(job: Job) {
     // 여기서 비디오 처리 로직을 구현할 수 있습니다
     // 예: 비디오 인코딩, 썸네일 생성 등
@@ -27,7 +28,7 @@ export class EpisodeUploadProcessor {
   }
 }
 
-@Processor('anime-processing')
+@Processor(QUEUE_KEYS.ANIME_PROCESSING)
 export class AnimeProcessingProcessor {
   private readonly logger = new Logger(AnimeProcessingProcessor.name);
 

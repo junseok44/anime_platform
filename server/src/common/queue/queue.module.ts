@@ -5,6 +5,7 @@ import { AnimeProcessingProcessor } from './queue.processor';
 import { RedisPubSubModule } from '../redis/redis-pubsub.module';
 import { QueueService } from './queue.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { QUEUE_KEYS } from './queue-keys';
 
 @Module({
   imports: [
@@ -17,10 +18,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
     BullModule.registerQueue(
       {
-        name: 'episode-upload',
+        name: QUEUE_KEYS.EPISODE_UPLOAD,
       },
       {
-        name: 'anime-processing',
+        name: QUEUE_KEYS.ANIME_PROCESSING,
       },
     ),
     RedisPubSubModule,
