@@ -7,6 +7,8 @@ import { UpdateAnimeEpisodeDto } from './dto/update-anime-episode.dto';
 import { Anime } from '../anime/entities/anime.entity';
 import * as fs from 'fs';
 import * as path from 'path';
+import { RedisPubSubService } from 'src/common/redis/redis-pubsub.service';
+import { QueueService } from '../common/queue/queue.service';
 
 @Injectable()
 export class AnimeEpisodeService {
@@ -15,6 +17,8 @@ export class AnimeEpisodeService {
     private readonly animeEpisodeRepository: Repository<AnimeEpisode>,
     @InjectRepository(Anime)
     private readonly animeRepository: Repository<Anime>,
+    private readonly redisPubSubService: RedisPubSubService,
+    private readonly queueService: QueueService,
   ) {}
 
   async create(
@@ -23,6 +27,7 @@ export class AnimeEpisodeService {
   ): Promise<AnimeEpisode> {
     const anime = await this.animeRepository.findOne({
       where: { id: createAnimeEpisodeDto.animeId },
+      relations: ['likedBy'],
     });
 
     if (!anime) {
@@ -42,13 +47,32 @@ export class AnimeEpisodeService {
       videoPath,
     });
 
-    return this.animeEpisodeRepository.save(episode);
-  }
+    const savedEpisode = await this.animeEpisodeRepository.save(episode);
 
-  async findAll(): Promise<AnimeEpisode[]> {
-    return await this.animeEpisodeRepository.find({
-      relations: ['anime'],
-    });
+    // 좋아요한 사용자들에게 새 에피소드 알림 전송
+    for (const user of anime.likedBy) {
+      this.redisPubSubService.publish('new-episode', {
+        userId: user.id,
+        animeId: savedEpisode.anime.id,
+        episodeId: savedEpisode.id,
+        episodeNumber: savedEpisode.episodeNumber,
+        title: savedEpisode.title,
+      });
+    }
+
+    // 큐에 업로드 작업 추가
+    if (video) {
+      await this.queueService.addEpisodeUploadJob({
+        episodeId: savedEpisode.id,
+        videoPath: videoPath,
+        animeId: savedEpisode.anime.id,
+        userId: savedEpisode.anime.likedBy.map((user) => user.id).join(','),
+        episodeNumber: savedEpisode.episodeNumber,
+        title: savedEpisode.title,
+      });
+    }
+
+    return savedEpisode;
   }
 
   async findOne(id: string): Promise<AnimeEpisode> {

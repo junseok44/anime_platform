@@ -8,6 +8,9 @@ import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { join } from 'path';
 import { v4 } from 'uuid';
+import { NotificationsModule } from '../notifications/notifications.module';
+import { RedisPubSubModule } from 'src/common/redis/redis-pubsub.module';
+import { QueueModule } from 'src/common/queue/queue.module';
 
 @Module({
   imports: [
@@ -22,6 +25,9 @@ import { v4 } from 'uuid';
         },
       }),
     }),
+    NotificationsModule,
+    RedisPubSubModule,
+    QueueModule,
   ],
   controllers: [AnimeEpisodeController],
   providers: [AnimeEpisodeService],

@@ -20,11 +20,68 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { RateLimit } from 'src/common/guards/rate-limit.guard';
+import { CurrentUser } from 'src/auth/decorators/current-user.decorator';
+import { JwtPayload } from 'src/auth/types/jwt-payload.type';
 
 @ApiTags('애니메이션')
 @Controller('anime')
 export class AnimeController {
   constructor(private readonly animeService: AnimeService) {}
+
+  @Get('likes')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: '좋아요한 애니메이션 목록 조회' })
+  @ApiResponse({
+    status: 200,
+    description: '좋아요한 애니메이션 목록 조회 성공',
+  })
+  @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
+  getLikedAnimes(@CurrentUser() user: JwtPayload) {
+    return this.animeService.getLikedAnimes(user.sub);
+  }
+
+  @Get('likes/:animeId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: '애니메이션 좋아요 여부 확인' })
+  @ApiResponse({ status: 200, description: '좋아요 여부 확인 성공' })
+  @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
+  @ApiResponse({ status: 404, description: '애니메이션을 찾을 수 없음' })
+  isLiked(
+    @Param('animeId', new ParseUUIDPipe()) animeId: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.animeService.isLiked(animeId, user.sub);
+  }
+
+  @Post('likes/:animeId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: '애니메이션 좋아요 토글' })
+  @ApiResponse({ status: 200, description: '좋아요 토글 성공' })
+  @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
+  @ApiResponse({ status: 404, description: '애니메이션을 찾을 수 없음' })
+  toggleLike(
+    @Param('animeId', new ParseUUIDPipe()) animeId: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.animeService.toggleLike(animeId, user.sub);
+  }
+
+  @Post(':animeId/related/:relatedAnimeId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({ summary: '연관 애니메이션 추가' })
+  @ApiResponse({ status: 200, description: '연관 애니메이션 추가 성공' })
+  @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
+  @ApiResponse({ status: 404, description: '애니메이션을 찾을 수 없음' })
+  addRelatedAnime(
+    @Param('animeId', new ParseUUIDPipe()) animeId: string,
+    @Param('relatedAnimeId', new ParseUUIDPipe()) relatedAnimeId: string,
+  ) {
+    return this.animeService.addRelatedAnime(animeId, relatedAnimeId);
+  }
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -45,18 +102,18 @@ export class AnimeController {
     return this.animeService.findAll();
   }
 
-  @Get(':id')
+  @Get(':animeId')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: '애니메이션 상세 조회' })
   @ApiResponse({ status: 200, description: '애니메이션 상세 조회 성공' })
   @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
   @ApiResponse({ status: 404, description: '애니메이션을 찾을 수 없음' })
-  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.animeService.findOne(id);
+  findOne(@Param('animeId', new ParseUUIDPipe()) animeId: string) {
+    return this.animeService.findOne(animeId);
   }
 
-  @Patch(':id')
+  @Patch(':animeId')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: '애니메이션 수정' })
@@ -65,34 +122,20 @@ export class AnimeController {
   @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
   @ApiResponse({ status: 404, description: '애니메이션을 찾을 수 없음' })
   update(
-    @Param('id', new ParseUUIDPipe()) id: string,
+    @Param('animeId', new ParseUUIDPipe()) animeId: string,
     @Body() updateAnimeDto: UpdateAnimeDto,
   ) {
-    return this.animeService.update(id, updateAnimeDto);
+    return this.animeService.update(animeId, updateAnimeDto);
   }
 
-  @Delete(':id')
+  @Delete(':animeId')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('access-token')
   @ApiOperation({ summary: '애니메이션 삭제' })
   @ApiResponse({ status: 200, description: '애니메이션 삭제 성공' })
   @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
   @ApiResponse({ status: 404, description: '애니메이션을 찾을 수 없음' })
-  remove(@Param('id', new ParseUUIDPipe()) id: string) {
-    return this.animeService.remove(id);
-  }
-
-  @Post(':id/related/:relatedId')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('access-token')
-  @ApiOperation({ summary: '연관 애니메이션 추가' })
-  @ApiResponse({ status: 200, description: '연관 애니메이션 추가 성공' })
-  @ApiResponse({ status: 401, description: '인증되지 않은 요청' })
-  @ApiResponse({ status: 404, description: '애니메이션을 찾을 수 없음' })
-  addRelatedAnime(
-    @Param('id', new ParseUUIDPipe()) id: string,
-    @Param('relatedId', new ParseUUIDPipe()) relatedId: string,
-  ) {
-    return this.animeService.addRelatedAnime(id, relatedId);
+  remove(@Param('animeId', new ParseUUIDPipe()) animeId: string) {
+    return this.animeService.remove(animeId);
   }
 }

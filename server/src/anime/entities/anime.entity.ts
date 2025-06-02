@@ -13,6 +13,7 @@ import { Comment } from '../../comments/entities/comment.entity';
 import { Category } from './category.entity';
 import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
 import { AnimeRating } from 'src/ratings/entities/anime-rating.entity';
+import { User } from '../../users/entities/user.entity';
 
 export enum AnimeType {
   TVA = 'tva',
@@ -68,6 +69,11 @@ export class Anime {
   @Field(() => Number)
   @Column('decimal', { precision: 3, scale: 2, default: 0 })
   averageRating: number;
+
+  @Field(() => [User])
+  @ManyToMany(() => User, (user) => user.likedAnimes)
+  @JoinTable()
+  likedBy: User[];
 
   @Field()
   @CreateDateColumn()

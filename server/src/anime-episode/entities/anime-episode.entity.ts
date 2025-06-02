@@ -39,6 +39,10 @@ export class AnimeEpisode {
   @Column()
   runningTime: number; // in minutes
 
+  @Field()
+  @Column()
+  episodeNumber: number;
+
   @Field({ nullable: true })
   @Column({ nullable: true })
   @Transform(({ value }) => `${process.env.HOST}${value}`)
@@ -67,8 +71,4 @@ export class AnimeEpisode {
   @Field()
   @Column({ default: 0 })
   viewCount: number;
-
-  @Field()
-  @Column({ default: 0 })
-  likeCount: number;
 }

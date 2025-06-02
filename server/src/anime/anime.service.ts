@@ -6,6 +6,7 @@ import { CreateAnimeDto } from './dto/create-anime.dto';
 import { UpdateAnimeDto } from './dto/update-anime.dto';
 import { Anime } from './entities/anime.entity';
 import { Category } from './entities/category.entity';
+import { User } from '../users/entities/user.entity';
 
 type EpisodeWithAnimeId = AnimeEpisode & { animeId: string };
 
@@ -16,6 +17,8 @@ export class AnimeService {
     private readonly animeRepository: Repository<Anime>,
     @InjectRepository(Category)
     private readonly categoryRepository: Repository<Category>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
   ) {}
 
   async create(createAnimeDto: CreateAnimeDto): Promise<Anime> {
@@ -141,5 +144,70 @@ export class AnimeService {
 
     anime.relatedAnimes.push(relatedAnime);
     return await this.animeRepository.save(anime);
+  }
+
+  async toggleLike(animeId: string, userId: string): Promise<boolean> {
+    const anime = await this.animeRepository.findOne({
+      where: { id: animeId },
+      relations: ['likedBy'],
+    });
+
+    if (!anime) {
+      throw new NotFoundException('애니메이션을 찾을 수 없습니다.');
+    }
+
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['likedAnimes'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('사용자를 찾을 수 없습니다.');
+    }
+
+    const isLiked = anime.likedBy.some((likedUser) => likedUser.id === userId);
+
+    if (isLiked) {
+      anime.likedBy = anime.likedBy.filter(
+        (likedUser) => likedUser.id !== userId,
+      );
+      user.likedAnimes = user.likedAnimes.filter(
+        (likedAnime) => likedAnime.id !== animeId,
+      );
+    } else {
+      anime.likedBy.push(user);
+      user.likedAnimes.push(anime);
+    }
+
+    await this.animeRepository.save(anime);
+    await this.userRepository.save(user);
+
+    return !isLiked;
+  }
+
+  async isLiked(animeId: string, userId: string): Promise<boolean> {
+    const anime = await this.animeRepository.findOne({
+      where: { id: animeId },
+      relations: ['likedBy'],
+    });
+
+    if (!anime) {
+      throw new NotFoundException('애니메이션을 찾을 수 없습니다.');
+    }
+
+    return anime.likedBy.some((user) => user.id === userId);
+  }
+
+  async getLikedAnimes(userId: string): Promise<Anime[]> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['likedAnimes'],
+    });
+
+    if (!user) {
+      throw new NotFoundException('사용자를 찾을 수 없습니다.');
+    }
+
+    return user.likedAnimes;
   }
 }

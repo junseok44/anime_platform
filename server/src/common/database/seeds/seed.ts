@@ -1,13 +1,13 @@
 import { DataSource } from 'typeorm';
-import { User } from '../../users/entities/user.entity';
-import { Anime } from '../../anime/entities/anime.entity';
-import { Category } from '../../anime/entities/category.entity';
-import { AnimeEpisode } from '../../anime-episode/entities/anime-episode.entity';
-import { AnimeType } from '../../anime/entities/anime.entity';
-import { Comment, CommentType } from '../../comments/entities/comment.entity';
+
 import * as bcryptjs from 'bcryptjs';
 import dataSource from '../data-source';
 import { AnimeRating } from 'src/ratings/entities/anime-rating.entity';
+import { AnimeEpisode } from 'src/anime-episode/entities/anime-episode.entity';
+import { Anime, AnimeType } from 'src/anime/entities/anime.entity';
+import { Category } from 'src/anime/entities/category.entity';
+import { CommentType } from 'src/comments/entities/comment.entity';
+import { User } from 'src/users/entities/user.entity';
 
 async function seed() {
   const connection = await dataSource.initialize();
