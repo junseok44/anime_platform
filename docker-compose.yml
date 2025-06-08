@@ -6,16 +6,18 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./server:/app
-      - /app/node_modules
+      - ./server/src:/app/src
     env_file:
       - ./server/.env
       - ./.env
+    environment:
+      - ROLE=producer
     networks:
       - app-network
     depends_on:
       - redis
       - postgres
+      - kafka
 
   postgres:
     image: postgres:16
@@ -41,6 +43,58 @@ services:
     networks:
       - app-network
     command: redis-server --appendonly yes
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - app-network
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - app-network
+
+  encode:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    environment:
+      - ROLE=encode
+    env_file:
+      - ./server/.env
+      - ./.env
+    networks:
+      - app-network
+    depends_on:
+      - kafka
+
+  notify:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    environment:
+      - ROLE=notify
+    env_file:
+      - ./server/.env
+      - ./.env
+    networks:
+      - app-network
+    depends_on:
+      - kafka
 
 volumes:
   redis_data:

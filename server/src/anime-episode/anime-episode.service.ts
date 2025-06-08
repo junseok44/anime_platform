@@ -8,7 +8,7 @@ import { Anime } from '../anime/entities/anime.entity';
 import * as fs from 'fs';
 import * as path from 'path';
 import { RedisPubSubService } from 'src/common/redis/redis-pubsub.service';
-import { QueueService } from '../common/queue/queue.service';
+import { KafkaService } from 'src/common/kafka/kafka.service';
 
 @Injectable()
 export class AnimeEpisodeService {
@@ -18,7 +18,7 @@ export class AnimeEpisodeService {
     @InjectRepository(Anime)
     private readonly animeRepository: Repository<Anime>,
     private readonly redisPubSubService: RedisPubSubService,
-    private readonly queueService: QueueService,
+    private readonly kafkaService: KafkaService,
   ) {}
 
   async create(
@@ -60,9 +60,9 @@ export class AnimeEpisodeService {
       });
     }
 
-    // 큐에 업로드 작업 추가
+    // Kafka를 통해 에피소드 업로드 메시지 발행
     if (video) {
-      await this.queueService.addEpisodeUploadJob({
+      await this.kafkaService.publishEpisodeUploaded({
         episodeId: savedEpisode.id,
         videoPath: videoPath,
         animeId: savedEpisode.anime.id,
